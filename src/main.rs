@@ -1,6 +1,9 @@
-use poise::{serenity_prelude::all::{ChannelId, CreateMessage, GuildId}};
 use dotenvy::dotenv;
 use poise::serenity_prelude as serenity;
+use poise::serenity_prelude::{
+    FullEvent,
+    all::{ChannelId, CreateMessage, GuildId},
+};
 
 #[derive(Debug)]
 struct Data {}
@@ -66,6 +69,22 @@ async fn event_handler(
                 .expect("Error while logging Welcome message");
             println!("Greeted {}", new_member);
         }
+        FullEvent::GuildMemberRemoval { user, .. } => {
+            println!("GuildMemberRemoval");
+            let _greet_channel = ChannelId::new(1373832496801775717)
+                .send_message(
+                    &ctx.http,
+                    CreateMessage::new().content(format!(
+                        "Guys we lost {} :(",
+                        user.global_name.clone().unwrap_or("".to_owned())
+                    )),
+                )
+                .await?;
+            log_eventhandler(&format!("Gooodbye in #welcome"), ctx)
+                .await
+                .expect("Error while logging Welcome message");
+            println!("Bye Bye");
+        }
         _ => {}
     }
     Ok(())
@@ -93,6 +112,8 @@ async fn log_eventhandler(input: &str, ctx: &serenity::Context) -> Result<(), Bo
 /// Reply with pong
 async fn ping(ctx: Context<'_>) -> Result<(), Error> {
     ctx.reply("Pong!").await?;
-    log_eventhandler("/ping", ctx.serenity_context()).await.expect("Error logging");
+    log_eventhandler("/ping", ctx.serenity_context())
+        .await
+        .expect("Error logging");
     Ok(())
 }
